@@ -1,54 +1,104 @@
-//@ts-nocheck
 import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import getData from "../data/binance";
 import { useEffect, useState } from "react";
 import { useRouter } from "../node_modules/next/router";
-import Tes1 from "../components/tes1"
+import Tes1 from "../components/tes1";
+import MoonLoader from "../node_modules/react-spinners/MoonLoader";
+import ReactAudioPlayer from "react-audio-player";
+import useSound from "../node_modules/use-sound/dist/index";
+import clsx from "clsx";
+
+const override: CSSProperties = {
+  //display: "block",
+  //margin: "0 auto",
+  //height: "95",
+  //width: "9",
+  color: "red",
+  position: "fixed",
+};
 
 const Home = () => {
-  const [linaBtc, setLinaBtc] = useState(0);
-  const [linaUsdt, setLinaUsdt] = useState(null);
-  const [btcUsdt, setBtcUsdt] = useState(null);
-  const [cosUsdt, setCosUsdt] = useState(null);
-  const [cosBtc, setCosBtc] = useState(null);
-  const [action, setAction] = useState(false);
-  // async function fetchData() {
-  //   setInterval(async () => {
-  //     const data = await getData();
-  //     setLinaBtc(((data.LINAUSDT / data.BTCUSDT) * 100000000).toFixed(2));
-  //     setLinaUsdt(data.LINAUSDT);
-  //     setBtcUsdt(data.BTCUSDT);
+  const [linaBtc, setLinaBtc] = useState<number>(0);
+  const [linaUsdt, setLinaUsdt] = useState<number>(0);
+  const [btcUsdt, setBtcUsdt] = useState<number>(0);
+  const [cosUsdt, setCosUsdt] = useState<number>(0);
+  const [cosBtc, setCosBtc] = useState<number>(0);
+  const [action, setAction] = useState<string | null>("");
+  const [condition, setCondition] = useState({
+    LINABTC: "",
+    COSBTC: "",
+  });
+  const [targetPrice, setTargetPrice] = useState<number>(0);
+  const [time, setTime] = useState(500);
+  let [loading, setLoading] = useState(false);
 
-  //     setCosBtc(((data.COSUSDT / data.BTCUSDT) * 100000000).toFixed(2));
-  //     setCosUsdt(data.COSUSDT);
-  //     //console.log(btcUsdt);
-  //   }, 1000 * num);
-  // }
+  const [playOn] = useSound("/alarm.mp3", { volume: 0.95 });
 
   async function fetchData() {
+    if (linaBtc === 0) setLoading(true);
     const data = await getData();
-    setLinaBtc(((data.LINAUSDT / data.BTCUSDT) * 100000000).toFixed(2));
+    if (data) setLoading(false);
+    setLinaBtc(Number(((data.LINAUSDT / data.BTCUSDT) * 100000000).toFixed(2)));
     setLinaUsdt(data.LINAUSDT);
     setBtcUsdt(data.BTCUSDT);
-    setCosBtc(((data.COSUSDT / data.BTCUSDT) * 100000000).toFixed(2));
+    setCosBtc(Number(((data.COSUSDT / data.BTCUSDT) * 100000000).toFixed(2)));
     setCosUsdt(data.COSUSDT);
+  }
+
+  function stop() {
+    setCondition((condition) => ({
+      ...condition,
+      LINABTC: "",
+      COSBTC:""
+    }));
+    setTargetPrice(0);
+    setLinaBtc(0);
+    setLinaUsdt(0);
+    setBtcUsdt(0);
+    setCosBtc(0);
+    setCosUsdt(0);
   }
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (action == "Start" ) fetchData();
-      if (action == "Stop" ) {
+      if (action == "Start") fetchData();
+      if (action == "Stop") {
         setLinaBtc(0);
         setLinaUsdt(0);
         setBtcUsdt(0);
         setCosBtc(0);
         setCosUsdt(0);
       }
+      condition.LINABTC === ">"
+        ? linaBtc > targetPrice
+          ? playOn()
+          : null
+        : null;
+      condition.LINABTC === "<"
+        ? linaBtc < targetPrice
+          ? playOn()
+          : null
+        : null;
+      condition.LINABTC === ">="
+        ? linaBtc >= targetPrice
+          ? playOn()
+          : null
+        : null;
+      condition.LINABTC === "<="
+        ? linaBtc <= targetPrice
+          ? playOn()
+          : null
+        : null;
     }, 5000);
-    return () => clearInterval(interval);
-  }, [action]);
+
+    console.log(targetPrice);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [action, linaBtc, condition, targetPrice]);
 
   function sendWa() {
     window.open(
@@ -65,33 +115,228 @@ const Home = () => {
         <link rel="icon" href="/bitcoin.png" type="image/x-icon" />
       </Head>
 
-      <table className="shadow-2-xl font-[Poppins] border-2 border-sky-200 w-6/12 overflow-hidden">
-        <thead className="text-white">
-          <tr>
-            <th className="py-3 bg-sky-800">Main Coin</th>
-            <th className="py-3 bg-sky-800">Price</th>
-            <th className="py-3 bg-sky-800">BaseCoin1</th>
-            <th className="py-3 bg-sky-800">BaseCoin2</th>
-          </tr>
-        </thead>
-        <tbody className="text-sky-900 text-left">
-          <tr className="bg-sky-200 hover:scale-105 hover:bg-sky-100 cursor-pointer duration-300">
-            <td className="py-3 px-6 ">LINABTC</td>
-            <td className="py-3 px-6 ">{linaBtc || 0}</td>
-            <td className="py-3 px-6 text-xs ">LinaUsdt = {linaUsdt || 0}</td>
-            <td className="py-3 px-6 text-xs ">BtcUsdt = {btcUsdt || 0}</td>
-          </tr>
-          <tr className="bg-sky-200 hover:scale-105 hover:bg-sky-100 cursor-pointer duration-300">
-            <td className="py-3 px-6 ">COSBTC</td>
-            <td className="py-3 px-6 ">{cosBtc || 0}</td>
-            <td className="py-3 px-6 text-xs ">CosUsdt = {cosUsdt || 0}</td>
-            <td className="py-3 px-6 text-xs ">BtcUsdt = {btcUsdt || 0}</td>
-          </tr>
-        </tbody>
-      </table>
+      <MoonLoader color={"#991b1b"} loading={loading} cssOverride={override} />
+      <div className="flex w-11/12">
+        <table className="shadow-2-xl font-[Poppins] mx-auto border-2 border-sky-200 overflow-hidden">
+          <thead className="text-white">
+            <tr>
+              <th className="py-3 px-6 bg-sky-800">Main Coin</th>
+              <th className="py-3 px-6  bg-sky-800">Price</th>
+              <th className="py-3 px-6  bg-sky-800">BaseCoin1</th>
+              <th className="py-3 px-6  bg-sky-800">BaseCoin2</th>
+            </tr>
+          </thead>
+          <tbody className="text-sky-900 text-center">
+            <tr className="bg-sky-200 hover:scale-105 hover:bg-sky-100 cursor-pointer duration-300">
+              <td className="py-3">LINABTC</td>
+              <td className="py-3">{linaBtc || "00.00"}</td>
+              <td className="py-3 text-xs ">
+                LinaUsdt = {linaUsdt || "0.00000000"}
+              </td>
+              <td className="py-3 text-xs ">
+                BtcUsdt = {btcUsdt || "00000.00000000"}
+              </td>
+            </tr>
+            <tr className="bg-sky-200 hover:scale-105 hover:bg-sky-100 cursor-pointer duration-300">
+              <td className="py-3">COSBTC</td>
+              <td className="py-3">{cosBtc || "00.00"}</td>
+              <td className="py-3 text-xs ">
+                CosUsdt = {cosUsdt || "0.000000000"}
+              </td>
+              <td className="py-3 text-xs ">
+                BtcUsdt = {btcUsdt || "00000.00000000"}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <table className="shadow-2-xl font-[Poppins] mx-auto border-2 border-sky-200 overflow-hidden">
+          <thead className="text-white">
+            <tr>
+              <th className="py-3 px-6 bg-sky-800">Coin</th>
+              <th className="py-3 px-6  bg-sky-800">Price</th>
+              <th className="py-3 px-6  bg-sky-800">Condition</th>
+              <th className="py-3 px-6  bg-sky-800">Target Price</th>
+            </tr>
+          </thead>
+          <tbody className="text-sky-900 text-center">
+            <tr className="bg-sky-200 hover:bg-sky-100 duration-300">
+              <td className="py-3">LINABTC</td>
+              <td className="py-3">{linaBtc}</td>
+              <td className="py-3 text-xs ">
+                <div className="flex justify-between text-white font-bold">
+                  <div
+                    className={clsx(
+                      "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
+                      condition.LINABTC === ">"
+                        ? "bg-green-600 shadow-[0_5px_#3f6212]"
+                        : null
+                    )}
+                    onClick={() =>
+                      setCondition((condition) => ({
+                        ...condition,
+                        LINABTC: ">",
+                      }))
+                    }
+                  >
+                    {">"}
+                  </div>
+                  <div
+                    className={clsx(
+                      "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
+                      condition.LINABTC === "<"
+                        ? "bg-green-600 shadow-[0_5px_#3f6212]"
+                        : null
+                    )}
+                    onClick={() =>
+                      setCondition((condition) => ({
+                        ...condition,
+                        LINABTC: "<",
+                      }))
+                    }
+                  >
+                    {"<"}
+                  </div>
+                  <div
+                    className={clsx(
+                      "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
+                      condition.LINABTC === ">="
+                        ? "bg-green-600 shadow-[0_5px_#3f6212]"
+                        : null
+                    )}
+                    onClick={() =>
+                      setCondition((condition) => ({
+                        ...condition,
+                        LINABTC: ">=",
+                      }))
+                    }
+                  >
+                    {">="}
+                  </div>
+                  <div
+                    className={clsx(
+                      "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
+                      condition.LINABTC === "<="
+                        ? "bg-green-600 shadow-[0_5px_#3f6212]"
+                        : null
+                    )}
+                    onClick={() =>
+                      setCondition((condition) => ({
+                        ...condition,
+                        LINABTC: "<=",
+                      }))
+                    }
+                  >
+                    {"<="}
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 text-xs ">
+                <div>
+                  <input
+                    className="testing p-4 w-20 focus:border-orange-400 rounded-md outline-none border shadow-[0_1px_#64748b]"
+                    type="number"
+                    name=""
+                    id=""
+                    value={targetPrice || ""}
+                    onChange={(e) => setTargetPrice(Number(e.target.value))}
+                  />
+                </div>
+              </td>
+            </tr>
+
+            <tr className="bg-sky-200 hover:bg-sky-100 duration-300">
+              <td className="py-3">COSBTC</td>
+              <td className="py-3">{cosBtc}</td>
+              <td className="py-3 text-xs ">
+                <div className="flex justify-between text-white font-bold">
+                  <div
+                    className={clsx(
+                      "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
+                      condition.COSBTC === ">"
+                        ? "bg-green-600 shadow-[0_5px_#3f6212]"
+                        : null
+                    )}
+                    onClick={() =>
+                      setCondition((condition) => ({
+                        ...condition,
+                        COSBTC: ">",
+                      }))
+                    }
+                  >
+                    {">"}
+                  </div>
+                  <div
+                    className={clsx(
+                      "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
+                      condition.COSBTC === "<"
+                        ? "bg-green-600 shadow-[0_5px_#3f6212]"
+                        : null
+                    )}
+                    onClick={() =>
+                      setCondition((condition) => ({
+                        ...condition,
+                        COSBTC: "<",
+                      }))
+                    }
+                  >
+                    {"<"}
+                  </div>
+                  <div
+                    className={clsx(
+                      "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
+                      condition.COSBTC === ">="
+                        ? "bg-green-600 shadow-[0_5px_#3f6212]"
+                        : null
+                    )}
+                    onClick={() =>
+                      setCondition((condition) => ({
+                        ...condition,
+                        COSBTC: ">=",
+                      }))
+                    }
+                  >
+                    {">="}
+                  </div>
+                  <div
+                    className={clsx(
+                      "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
+                      condition.COSBTC === "<="
+                        ? "bg-green-600 shadow-[0_5px_#3f6212]"
+                        : null
+                    )}
+                    onClick={() =>
+                      setCondition((condition) => ({
+                        ...condition,
+                        COSBTC: "<=",
+                      }))
+                    }
+                  >
+                    {"<="}
+                  </div>
+                </div>
+              </td>
+              <td className="py-3 text-xs ">
+                <div>
+                  <input
+                    className="testing p-4 w-20 focus:border-orange-400 rounded-md outline-none border shadow-[0_1px_#64748b]"
+                    type="number"
+                    name=""
+                    id=""
+                    value={targetPrice || ""}
+                    onChange={(e) => setTargetPrice(Number(e.target.value))}
+                  />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div className="flex gap-2 font-bold">
         <div
-          onClick={() => setAction("Start")}
+          onClick={() => {
+            fetchData();
+            setAction("Start");
+          }}
           className="cursor-pointer shadow-[0_7px_#ea580c] active:shadow-none active:relative active:top-[7px] text-white bg-[#fb923c] px-7 py-2 rounded-md"
         >
           <button>Count</button>
@@ -103,7 +348,10 @@ const Home = () => {
           <button>Send</button>
         </div>
         <div
-          onClick={() => setAction("Stop")}
+          onClick={() => {
+            stop();
+            setAction("Stop");
+          }}
           className="cursor-pointer shadow-[0_7px_#b91c1c] active:shadow-none active:relative active:top-[7px] text-white bg-[#f87171] px-7 py-2 rounded-md"
         >
           <button>Stop</button>
@@ -114,35 +362,3 @@ const Home = () => {
 };
 
 export default Home;
-
-// <div className=" bg-red-400flex flex-col">
-//           <div className="p-3 flex justify-center">
-//             <h1 className="font-quicksandp">Base Coin</h1>
-//           </div>
-//           <div className="flex">
-//             <div className="flex gap-2 w-60 p-2 flex  border-r-2 border-slate-500">
-//               <p>LINAUSDT</p>
-//               <p>=</p>
-//               <p className="">{linaUsdt || 0}</p>
-//             </div>
-
-//             <div className=" flex gap-2 p-2 w-60 flex ">
-//               <p>BTCUSDT</p>
-//               <p>=</p>
-//               <p className="">{btcUsdt || 0}</p>
-//             </div>
-//           </div>
-//         </div>
-//         <div className="flex flex-col">
-//           <div className=" p-3">
-//             <h1 className="font-quicksand">Main Coin</h1>
-//           </div>
-//           <div className="p-2">LINABTC</div>
-//         </div>
-
-//         <div className="flex flex-col ">
-//           <div className=" p-3">
-//             <h1 className="font-quicksandp">Current Price</h1>
-//           </div>
-//           <div className="p-2">{linaBtc || 0.0}</div>
-//         </div>
