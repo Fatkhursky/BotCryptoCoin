@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MoonLoader from "../node_modules/react-spinners/MoonLoader";
 import useSound from "../node_modules/use-sound/dist/index";
 import clsx from "clsx";
-const override: CSSProperties = {
+const override = {
   //display: "block",
   //margin: "0 auto",
   //height: "95",
