@@ -1,10 +1,10 @@
 import Head from "next/head";
 import getData from "../data/binance";
-import { useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import MoonLoader from "../node_modules/react-spinners/MoonLoader";
 import useSound from "../node_modules/use-sound/dist/index";
 import clsx from "clsx";
-const override = {
+const override:CSSProperties = {
   //display: "block",
   //margin: "0 auto",
   //height: "95",
