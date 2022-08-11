@@ -4,11 +4,8 @@ import { CSSProperties, useEffect, useState } from "react";
 import MoonLoader from "../node_modules/react-spinners/MoonLoader";
 import useSound from "../node_modules/use-sound/dist/index";
 import clsx from "clsx";
-const override:CSSProperties = {
-  //display: "block",
-  //margin: "0 auto",
-  //height: "95",
-  //width: "9",
+
+const override: CSSProperties = {
   color: "red",
   position: "fixed",
 };
@@ -20,7 +17,6 @@ const Home = () => {
   const [cosUsdt, setCosUsdt] = useState<number>(0);
   const [cosBtc, setCosBtc] = useState<number>(0);
   const [action, setAction] = useState<string | null>("");
-  const [value, setValue] = useState(new Date());
   const [condition, setCondition] = useState<{
     LINABTC: { ">": boolean; "<": boolean; ">=": boolean; "<=": boolean };
     COSBTC: { ">": boolean; "<": boolean; ">=": boolean; "<=": boolean };
@@ -48,7 +44,7 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
 
   // Get current date
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState<any>();
   useEffect(() => {
     const timerId = setInterval(() => {
       setDate(new Date());
@@ -56,7 +52,7 @@ const Home = () => {
     return function cleanup() {
       clearInterval(timerId);
     };
-  }, [date]);
+  });
 
   const [playOn] = useSound("/alarm.mp3", { volume: 0.95 });
 
@@ -87,7 +83,7 @@ const Home = () => {
         "<=": false,
       },
     }));
-    setTargetPrice({LINABTC: 0, COSBTC: 0});
+    setTargetPrice({ LINABTC: 0, COSBTC: 0 });
     setLinaBtc(0);
     setLinaUsdt(0);
     setBtcUsdt(0);
@@ -167,7 +163,7 @@ const Home = () => {
         <link rel="icon" href="/bitcoin.png" type="image/x-icon" />
       </Head>
 
-      <div>{date.toLocaleTimeString("en-GB")}</div>
+      <div>{date ? date.toLocaleTimeString("en-GB") : null}</div>
 
       <MoonLoader color={"#991b1b"} loading={loading} cssOverride={override} />
       <div className="flex w-11/12">
