@@ -1,15 +1,9 @@
 import Head from "next/head";
-import Image from "next/image";
-import styles from "../styles/Home.module.css";
 import getData from "../data/binance";
 import { useEffect, useState } from "react";
-import { useRouter } from "../node_modules/next/router";
-import Tes1 from "../components/tes1";
 import MoonLoader from "../node_modules/react-spinners/MoonLoader";
-import ReactAudioPlayer from "react-audio-player";
 import useSound from "../node_modules/use-sound/dist/index";
 import clsx from "clsx";
-
 const override: CSSProperties = {
   //display: "block",
   //margin: "0 auto",
@@ -26,13 +20,43 @@ const Home = () => {
   const [cosUsdt, setCosUsdt] = useState<number>(0);
   const [cosBtc, setCosBtc] = useState<number>(0);
   const [action, setAction] = useState<string | null>("");
-  const [condition, setCondition] = useState({
-    LINABTC: "",
-    COSBTC: "",
+  const [value, setValue] = useState(new Date());
+  const [condition, setCondition] = useState<{
+    LINABTC: { ">": boolean; "<": boolean; ">=": boolean; "<=": boolean };
+    COSBTC: { ">": boolean; "<": boolean; ">=": boolean; "<=": boolean };
+  }>({
+    LINABTC: {
+      ">": false,
+      "<": false,
+      ">=": false,
+      "<=": false,
+    },
+    COSBTC: {
+      ">": false,
+      "<": false,
+      ">=": false,
+      "<=": false,
+    },
   });
-  const [targetPrice, setTargetPrice] = useState<number>(0);
-  const [time, setTime] = useState(500);
-  let [loading, setLoading] = useState(false);
+  const [targetPrice, setTargetPrice] = useState<{
+    LINABTC: number;
+    COSBTC: number;
+  }>({
+    LINABTC: 0,
+    COSBTC: 0,
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Get current date
+  const [date, setDate] = useState(new Date());
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      setDate(new Date());
+    }, 1000);
+    return function cleanup() {
+      clearInterval(timerId);
+    };
+  }, [date]);
 
   const [playOn] = useSound("/alarm.mp3", { volume: 0.95 });
 
@@ -50,10 +74,20 @@ const Home = () => {
   function stop() {
     setCondition((condition) => ({
       ...condition,
-      LINABTC: "",
-      COSBTC:""
+      LINABTC: {
+        ">": false,
+        "<": false,
+        ">=": false,
+        "<=": false,
+      },
+      COSBTC: {
+        ">": false,
+        "<": false,
+        ">=": false,
+        "<=": false,
+      },
     }));
-    setTargetPrice(0);
+    setTargetPrice({LINABTC: 0, COSBTC: 0});
     setLinaBtc(0);
     setLinaUsdt(0);
     setBtcUsdt(0);
@@ -71,34 +105,52 @@ const Home = () => {
         setCosBtc(0);
         setCosUsdt(0);
       }
-      condition.LINABTC === ">"
-        ? linaBtc > targetPrice
+      condition.LINABTC[">"] === true
+        ? linaBtc > targetPrice.LINABTC
           ? playOn()
           : null
         : null;
-      condition.LINABTC === "<"
-        ? linaBtc < targetPrice
+      condition.LINABTC["<"] === true
+        ? linaBtc < targetPrice.LINABTC
           ? playOn()
           : null
         : null;
-      condition.LINABTC === ">="
-        ? linaBtc >= targetPrice
+      condition.LINABTC[">="] === true
+        ? linaBtc >= targetPrice.LINABTC
           ? playOn()
           : null
         : null;
-      condition.LINABTC === "<="
-        ? linaBtc <= targetPrice
+      condition.LINABTC["<="] === true
+        ? linaBtc <= targetPrice.LINABTC
+          ? playOn()
+          : null
+        : null;
+      condition.COSBTC[">"] === true
+        ? cosBtc > targetPrice.COSBTC
+          ? playOn()
+          : null
+        : null;
+      condition.COSBTC["<"] === true
+        ? cosBtc < targetPrice.COSBTC
+          ? playOn()
+          : null
+        : null;
+      condition.COSBTC[">="] === true
+        ? cosBtc >= targetPrice.COSBTC
+          ? playOn()
+          : null
+        : null;
+      condition.COSBTC["<="] === true
+        ? cosBtc <= targetPrice.COSBTC
           ? playOn()
           : null
         : null;
     }, 5000);
 
-    console.log(targetPrice);
-
     return () => {
       clearInterval(interval);
     };
-  }, [action, linaBtc, condition, targetPrice]);
+  }, [action, linaBtc, condition, targetPrice, cosBtc]);
 
   function sendWa() {
     window.open(
@@ -114,6 +166,8 @@ const Home = () => {
 
         <link rel="icon" href="/bitcoin.png" type="image/x-icon" />
       </Head>
+
+      <div>{date.toLocaleTimeString("en-GB")}</div>
 
       <MoonLoader color={"#991b1b"} loading={loading} cssOverride={override} />
       <div className="flex w-11/12">
@@ -167,14 +221,21 @@ const Home = () => {
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
-                      condition.LINABTC === ">"
+                      condition.LINABTC[">"] === true
                         ? "bg-green-600 shadow-[0_5px_#3f6212]"
                         : null
                     )}
                     onClick={() =>
                       setCondition((condition) => ({
                         ...condition,
-                        LINABTC: ">",
+                        LINABTC: {
+                          // ...condition.LINABTC,
+                          // '>': !condition.LINABTC['>']
+                          ">": !condition.LINABTC[">"],
+                          "<": false,
+                          ">=": false,
+                          "<=": false,
+                        },
                       }))
                     }
                   >
@@ -183,14 +244,21 @@ const Home = () => {
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
-                      condition.LINABTC === "<"
+                      condition.LINABTC["<"] === true
                         ? "bg-green-600 shadow-[0_5px_#3f6212]"
                         : null
                     )}
                     onClick={() =>
                       setCondition((condition) => ({
                         ...condition,
-                        LINABTC: "<",
+                        LINABTC: {
+                          // ...condition.LINABTC,
+                          // '<': !condition.LINABTC['<']
+                          ">": false,
+                          "<": !condition.LINABTC["<"],
+                          ">=": false,
+                          "<=": false,
+                        },
                       }))
                     }
                   >
@@ -199,14 +267,19 @@ const Home = () => {
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
-                      condition.LINABTC === ">="
+                      condition.LINABTC[">="] === true
                         ? "bg-green-600 shadow-[0_5px_#3f6212]"
                         : null
                     )}
                     onClick={() =>
                       setCondition((condition) => ({
                         ...condition,
-                        LINABTC: ">=",
+                        LINABTC: {
+                          ">": false,
+                          "<": false,
+                          ">=": !condition.LINABTC[">="],
+                          "<=": false,
+                        },
                       }))
                     }
                   >
@@ -215,14 +288,19 @@ const Home = () => {
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
-                      condition.LINABTC === "<="
+                      condition.LINABTC["<="] === true
                         ? "bg-green-600 shadow-[0_5px_#3f6212]"
                         : null
                     )}
                     onClick={() =>
                       setCondition((condition) => ({
                         ...condition,
-                        LINABTC: "<=",
+                        LINABTC: {
+                          ">": false,
+                          "<": false,
+                          ">=": false,
+                          "<=": !condition.LINABTC["<="],
+                        },
                       }))
                     }
                   >
@@ -237,8 +315,13 @@ const Home = () => {
                     type="number"
                     name=""
                     id=""
-                    value={targetPrice || ""}
-                    onChange={(e) => setTargetPrice(Number(e.target.value))}
+                    value={targetPrice.LINABTC || ""}
+                    onChange={(e) =>
+                      setTargetPrice((prev) => ({
+                        ...prev,
+                        LINABTC: Number(e.target.value),
+                      }))
+                    }
                   />
                 </div>
               </td>
@@ -252,14 +335,19 @@ const Home = () => {
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
-                      condition.COSBTC === ">"
+                      condition.COSBTC[">"] === true
                         ? "bg-green-600 shadow-[0_5px_#3f6212]"
                         : null
                     )}
                     onClick={() =>
                       setCondition((condition) => ({
                         ...condition,
-                        COSBTC: ">",
+                        COSBTC: {
+                          ">": !condition.COSBTC[">"],
+                          "<": false,
+                          ">=": false,
+                          "<=": false,
+                        },
                       }))
                     }
                   >
@@ -268,14 +356,19 @@ const Home = () => {
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
-                      condition.COSBTC === "<"
+                      condition.COSBTC["<"] === true
                         ? "bg-green-600 shadow-[0_5px_#3f6212]"
                         : null
                     )}
                     onClick={() =>
                       setCondition((condition) => ({
                         ...condition,
-                        COSBTC: "<",
+                        COSBTC: {
+                          ">": false,
+                          "<": !condition.COSBTC["<"],
+                          ">=": false,
+                          "<=": false,
+                        },
                       }))
                     }
                   >
@@ -284,14 +377,19 @@ const Home = () => {
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
-                      condition.COSBTC === ">="
+                      condition.COSBTC[">="] === true
                         ? "bg-green-600 shadow-[0_5px_#3f6212]"
                         : null
                     )}
                     onClick={() =>
                       setCondition((condition) => ({
                         ...condition,
-                        COSBTC: ">=",
+                        COSBTC: {
+                          ">": false,
+                          "<": false,
+                          ">=": !condition.COSBTC[">="],
+                          "<=": false,
+                        },
                       }))
                     }
                   >
@@ -300,14 +398,19 @@ const Home = () => {
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
-                      condition.COSBTC === "<="
+                      condition.COSBTC["<="] === true
                         ? "bg-green-600 shadow-[0_5px_#3f6212]"
                         : null
                     )}
                     onClick={() =>
                       setCondition((condition) => ({
                         ...condition,
-                        COSBTC: "<=",
+                        COSBTC: {
+                          ">": false,
+                          "<": false,
+                          ">=": false,
+                          "<=": !condition.COSBTC["<="],
+                        },
                       }))
                     }
                   >
@@ -322,8 +425,13 @@ const Home = () => {
                     type="number"
                     name=""
                     id=""
-                    value={targetPrice || ""}
-                    onChange={(e) => setTargetPrice(Number(e.target.value))}
+                    value={targetPrice.COSBTC || ""}
+                    onChange={(e) =>
+                      setTargetPrice((prev) => ({
+                        ...prev,
+                        COSBTC: Number(e.target.value),
+                      }))
+                    }
                   />
                 </div>
               </td>
