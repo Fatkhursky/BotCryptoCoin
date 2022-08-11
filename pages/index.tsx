@@ -150,7 +150,7 @@ const Home = () => {
     return () => {
       clearInterval(interval);
     };
-  }, [action, linaBtc, condition, targetPrice, cosBtc]);
+  }, [action, linaBtc, condition, targetPrice, cosBtc, fetchData, playOn]);
 
   function sendWa() {
     window.open(
