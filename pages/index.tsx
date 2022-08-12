@@ -44,15 +44,15 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
 
   // Get current date
-  const [date, setDate] = useState<any>();
-  useEffect(() => {
-    const timerId = setInterval(() => {
-      setDate(new Date());
-    }, 1000);
-    return function cleanup() {
-      clearInterval(timerId);
-    };
-  });
+  // const [date, setDate] = useState<any>();
+  // useEffect(() => {
+  //   const timerId = setInterval(() => {
+  //     setDate(new Date());
+  //   }, 1000);
+  //   return function cleanup() {
+  //     clearInterval(timerId);
+  //   };
+  // });
 
   const [playOn] = useSound("/alarm.mp3", { volume: 0.95 });
 
@@ -91,6 +91,11 @@ const Home = () => {
     setCosUsdt(0);
   }
 
+  const [alert, setAlert] = useState<{ LINABTC: boolean; COSBTC: boolean }>({
+    LINABTC: false,
+    COSBTC: false,
+  });
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (action == "Start") fetchData();
@@ -103,50 +108,80 @@ const Home = () => {
       }
       condition.LINABTC[">"] === true
         ? linaBtc > targetPrice.LINABTC
-          ? playOn()
-          : null
+          ? (setAlert((c) => ({ ...c, LINABTC: true })), playOn())
+          : setAlert((c) => ({ ...c, LINABTC: false }))
         : null;
       condition.LINABTC["<"] === true
         ? linaBtc < targetPrice.LINABTC
-          ? playOn()
-          : null
+          ? (setAlert((c) => ({ ...c, LINABTC: true })), playOn())
+          : setAlert((c) => ({ ...c, LINABTC: false }))
         : null;
       condition.LINABTC[">="] === true
         ? linaBtc >= targetPrice.LINABTC
-          ? playOn()
-          : null
+          ? (setAlert((c) => ({ ...c, LINABTC: true })), playOn())
+          : setAlert((c) => ({ ...c, LINABTC: false }))
         : null;
       condition.LINABTC["<="] === true
         ? linaBtc <= targetPrice.LINABTC
-          ? playOn()
-          : null
+          ? (setAlert((c) => ({ ...c, LINABTC: true })), playOn())
+          : setAlert((c) => ({ ...c, LINABTC: false }))
         : null;
+
+      // condition.LINABTC[">"] === false &&
+      // condition.LINABTC["<"] === false &&
+      // condition.LINABTC[">="] === false &&
+      // condition.LINABTC["<="] === false
+      //   ? setAlert((c) => ({ ...c, LINABTC: false }))
+      //   : null;
+
       condition.COSBTC[">"] === true
         ? cosBtc > targetPrice.COSBTC
-          ? playOn()
-          : null
+          ? (setAlert((c) => ({ ...c, COSBTC: true })), playOn())
+          : setAlert((c) => ({ ...c, COSBTC: false }))
         : null;
       condition.COSBTC["<"] === true
         ? cosBtc < targetPrice.COSBTC
-          ? playOn()
-          : null
+          ? (setAlert((c) => ({ ...c, COSBTC: true })), playOn())
+          : setAlert((c) => ({ ...c, COSBTC: false }))
         : null;
       condition.COSBTC[">="] === true
         ? cosBtc >= targetPrice.COSBTC
-          ? playOn()
-          : null
+          ? (setAlert((c) => ({ ...c, COSBTC: true })), playOn())
+          : setAlert((c) => ({ ...c, COSBTC: false }))
         : null;
       condition.COSBTC["<="] === true
         ? cosBtc <= targetPrice.COSBTC
-          ? playOn()
-          : null
+          ? (setAlert((c) => ({ ...c, COSBTC: true })), playOn())
+          : setAlert((c) => ({ ...c, COSBTC: false }))
         : null;
+
+      // condition.COSBTC[">"] === false &&
+      // condition.COSBTC["<"] === false &&
+      // condition.COSBTC[">="] === false &&
+      // condition.COSBTC["<="] === false
+      //   ? setAlert((c) => ({ ...c, COSBTC: false }))
+      //   : null;
     }, 5000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [action, linaBtc, condition, targetPrice, cosBtc]);
+  }, [action, linaBtc, condition, targetPrice, cosBtc, alert]);
+
+  useEffect(() => {
+    condition.LINABTC[">"] === false &&
+    condition.LINABTC["<"] === false &&
+    condition.LINABTC[">="] === false &&
+    condition.LINABTC["<="] === false
+      ? setAlert((c) => ({ ...c, LINABTC: false }))
+      : null;
+    condition.COSBTC[">"] === false &&
+    condition.COSBTC["<"] === false &&
+    condition.COSBTC[">="] === false &&
+    condition.COSBTC["<="] === false
+      ? setAlert((c) => ({ ...c, COSBTC: false }))
+      : null;
+  }, [condition]);
 
   function sendWa() {
     window.open(
@@ -163,7 +198,7 @@ const Home = () => {
         <link rel="icon" href="/bitcoin.png" type="image/x-icon" />
       </Head>
 
-      <div>{date ? date.toLocaleTimeString("en-GB") : null}</div>
+      {/* <div>{date ? date.toLocaleTimeString("en-GB") : "00.00.00"}</div> */}
 
       <MoonLoader color={"#991b1b"} loading={loading} cssOverride={override} />
       <div className="flex w-11/12">
@@ -199,17 +234,21 @@ const Home = () => {
             </tr>
           </tbody>
         </table>
-        <table className="shadow-2-xl font-[Poppins] mx-auto border-2 border-sky-200 overflow-hidden">
+        <table className="shadow-2-xl font-[Poppins] mx-auto border-2 border-orange-100 overflow-hidden">
           <thead className="text-white">
             <tr>
-              <th className="py-3 px-6 bg-sky-800">Coin</th>
-              <th className="py-3 px-6  bg-sky-800">Price</th>
-              <th className="py-3 px-6  bg-sky-800">Condition</th>
-              <th className="py-3 px-6  bg-sky-800">Target Price</th>
+              <th className="py-3 px-6 bg-orange-400">Coin</th>
+              <th className="py-3 px-6  bg-orange-400">Price</th>
+              <th className="py-3 px-6  bg-orange-400">Condition</th>
+              <th className="py-3 px-6  bg-orange-400">Target Price</th>
             </tr>
           </thead>
           <tbody className="text-sky-900 text-center">
-            <tr className="bg-sky-200 hover:bg-sky-100 duration-300">
+            <tr
+              className={clsx(
+                alert.LINABTC === true ? "bg-red-400" : "bg-slate-200"
+              )}
+            >
               <td className="py-3">LINABTC</td>
               <td className="py-3">{linaBtc}</td>
               <td className="py-3 text-xs ">
@@ -323,7 +362,11 @@ const Home = () => {
               </td>
             </tr>
 
-            <tr className="bg-sky-200 hover:bg-sky-100 duration-300">
+            <tr
+              className={clsx(
+                alert.COSBTC === true ? "bg-red-400" : "bg-slate-200"
+              )}
+            >
               <td className="py-3">COSBTC</td>
               <td className="py-3">{cosBtc}</td>
               <td className="py-3 text-xs ">
