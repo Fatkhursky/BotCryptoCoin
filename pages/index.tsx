@@ -11,11 +11,11 @@ const override: CSSProperties = {
 };
 
 const Home = () => {
-  const [linaBtc, setLinaBtc] = useState<number>(0);
+  const [linaBtc, setLinaBtc] = useState<number>(undefined);
   const [linaUsdt, setLinaUsdt] = useState<number>(0);
   const [btcUsdt, setBtcUsdt] = useState<number>(0);
   const [cosUsdt, setCosUsdt] = useState<number>(0);
-  const [cosBtc, setCosBtc] = useState<number>(0);
+  const [cosBtc, setCosBtc] = useState<number>(undefined);
   const [action, setAction] = useState<string | null>("");
   const [condition, setCondition] = useState<{
     LINABTC: { ">": boolean; "<": boolean; ">=": boolean; "<=": boolean };
@@ -161,7 +161,7 @@ const Home = () => {
       // condition.COSBTC["<="] === false
       //   ? setAlert((c) => ({ ...c, COSBTC: false }))
       //   : null;
-    }, 5000);
+    }, 30000);
 
     return () => {
       clearInterval(interval);
@@ -250,7 +250,7 @@ const Home = () => {
               )}
             >
               <td className="py-3">LINABTC</td>
-              <td className="py-3">{linaBtc}</td>
+              <td className="py-3">{linaBtc || "0"}</td>
               <td className="py-3 text-xs ">
                 <div className="flex justify-between text-white font-bold">
                   <div
@@ -368,7 +368,7 @@ const Home = () => {
               )}
             >
               <td className="py-3">COSBTC</td>
-              <td className="py-3">{cosBtc}</td>
+              <td className="py-3">{cosBtc || "0"}</td>
               <td className="py-3 text-xs ">
                 <div className="flex justify-between text-white font-bold">
                   <div
