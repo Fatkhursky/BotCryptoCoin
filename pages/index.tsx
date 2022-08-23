@@ -252,7 +252,7 @@ const Home = () => {
               <td className="py-3">LINABTC</td>
               <td className="py-3">{linaBtc || "0"}</td>
               <td className="py-3 text-xs ">
-                <div className="flex justify-between text-white font-bold">
+                <div className="flex justify-between gap-1 text-white font-bold">
                   <div
                     className={clsx(
                       "cursor-pointer bg-slate-400 p-2 shadow-[0_5px_#334155] active:shadow-none active:relative active:top-[7px] rounded-md",
