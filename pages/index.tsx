@@ -201,8 +201,8 @@ const Home = () => {
       {/* <div>{date ? date.toLocaleTimeString("en-GB") : "00.00.00"}</div> */}
 
       <MoonLoader color={"#991b1b"} loading={loading} cssOverride={override} />
-      <div className="laptop:flex laptop:flex-row gap-7 flex flex-col">
-        <table className="shadow-2-xl font-[Poppins]  border-2 border-sky-200 overflow-hidden">
+      <div className="laptop:flex laptop:flex-row gap-7 flex flex-col android:p-3 android:text-xs tablet:text-xl">
+        <table className="shadow-2-xl font-[Poppins] border-2 border-sky-200 overflow-hidden">
           <thead className="text-white">
             <tr>
               <th className="py-3 px-6 bg-sky-800">Main Coin</th>
